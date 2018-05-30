@@ -1,53 +1,93 @@
-package edu.handong.csee.java.hw3;
+package edu.handong.csee.java.hw3; //Declare the package
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.util.ArrayList;
-import java.util.Scanner;
+import java.io.File; //Import the File class
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;//Import the Arraylist class
+import java.util.Date;
+import java.util.Scanner; //Import the Scanner class
+/**
+ * This class include the method that reads the csv file 
+ * ,and returns the arraylist storing the chat counter
+ * @author seonamjin
+ *
+ */
+public class DataReaderForCSV { //Declare the class
 
-public class DataReaderForCSV {
+	ArrayList<Chat> list; //Declare the filePath variable
+//	private String filePath; //Declare the ArrayList with string class
+	String[] data = new String[5]; //Instantiate the string list
+	private File file = null;
+	Date d=null;
+	String name = new String();
+	String date = new String();
+	String message = new String();
+	
 
-	private String fileName = null;
-	ArrayList<String> list;
-	private String filePath;
-	String[] name = new String[3];
 
-	public DataReaderForCSV(String name, String filePath) {
-		fileName = name;
-		this.filePath = filePath;
+
+	/**
+	 * This is the constructor
+	 * ,and its parameters are name and file path
+	 * @param name is file name
+	 */
+	public DataReaderForCSV(String absolutePath) {
+		// TODO Auto-generated constructor stub
+		file = new File(absolutePath);
+		
 	}
 
-	public ArrayList<String> readCSV() {
-
-		list = new ArrayList<String>();
+ 
+	public ArrayList<Chat> readCSV() throws Exception {
+		message = null;
+		list = new ArrayList<Chat>();
 		Scanner inputStream = null;
-		System.out.println ("The csv file " + fileName + " input.....\n");
+		System.out.println ("The csv file " + file.getName() + " input.....\n");
 
-		try {
-			inputStream = new Scanner(new File(filePath, fileName));
+		String line =null;
+		inputStream = new Scanner(file);
 
-			while (inputStream.hasNextLine ()) {
-				String line = inputStream.nextLine ();
-				if(line.contains("\"")&&line.contains("\"")) {
-					name = line.split(",");
-					if(name[1]!=null) {
-						name[1] = name[1].substring(1,name[1].length()-1);
-						list.add(name[1]);
-					}
+		while (inputStream.hasNextLine ()) {
+			line = inputStream.nextLine ();
+
+
+
+			if(line.contains(",\"")) {
+
+				data = line.split(",");
+				SimpleDateFormat new_format = new SimpleDateFormat("yyyy-MM-dd hh:mm");	
+ 
+				try {
+					d = new_format.parse(data[0]);
+					date = new_format.format(d);
+				} catch(ParseException e) {
+					e.printStackTrace();
 				}
+				name = data[1].substring(1,data[1].length()-1);
+				message = line.substring(line.indexOf(data[2])+1, line.length()-1);
+				
+				if(message.contains("Photo")) {
+					message="사진";
+				}
+				if(message.contains("\"\"")) {
+					message = message.replaceAll("\"\"","\"");
+				}
+				
+				
+				Chat c = new Chat(name,date,message);
+				list.add(c);
+
+
 			}
-
-		}  catch (FileNotFoundException e) {
-			System.out.println ("Error opening the file " + fileName);
-			System.exit (0);
 		}
-
-
-		//			System.out.println(name[1]);
-
-
 		inputStream.close ();
 		return list;
+	}
+	
+	public void photoCheck(String message) {
+		if(message.contains("Photo")) {
+			message="사진";
+		}
 	}
 
 
