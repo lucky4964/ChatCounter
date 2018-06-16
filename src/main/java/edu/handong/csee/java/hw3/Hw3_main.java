@@ -7,7 +7,10 @@ import org.apache.commons.cli.DefaultParser;
 import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
+
 import java.util.ArrayList; //Import ArrayList class
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 /**
  * This is the class including main method
@@ -19,16 +22,11 @@ import java.util.ArrayList; //Import ArrayList class
  */
 public class Hw3_main { //Declare the class including the main method
 
-	/**
-	 * This is the main method. and we instantiate the class to distinguish the file to csv or txt
-	 * ,and call the methods to read the file 
-	 * @param args
-	 */
-	
 	static String inputPath;
 	static String outputPath;
 	boolean verbose;
 	boolean help;
+	static ArrayList<Chat> list; //Instantiate the ArrayList with String
 	
 	/**
 	 * This is the class including main method
@@ -38,8 +36,8 @@ public class Hw3_main { //Declare the class including the main method
 	 */
 	public static void main(String[] args) { //Declare the main method
 
-		ArrayList<Chat> list = new ArrayList<Chat>(); //Instantiate the ArrayList with String
-		
+
+		list = new ArrayList<Chat>();
 
 		String filePath=null; //Declare the String variable storing the directory
 		File files=null; //Instantiate the File class with directory
@@ -52,49 +50,43 @@ public class Hw3_main { //Declare the class including the main method
 		try {
 		files = new File(filePath);
 		listOfFile = files.listFiles();
-
+		
 		if (!files.exists()) throw new NullPointerException();
 		} catch (NullPointerException e) {
 			System.out.println("You entered the wrong directory!!!");
 			System.exit(-1);
 		}
+		
+		String fileName ;
+		
+		
+		
+		ArrayList<DataReader> Runners = new ArrayList<DataReader>();
 
-		String fileName ; 
+		// this method returns the number of available threads
+		
+		int numOfCoresInMyCPU = Runtime.getRuntime().availableProcessors();
+		System.out.println("The number of cores of my system: " + numOfCoresInMyCPU);
+		
+		ExecutorService executor = Executors.newFixedThreadPool(numOfCoresInMyCPU);
 
 
 		for(File f: listOfFile) { 
 			fileName = f.getName(); 
-			System.out.println(fileName);
-			try {
-			//if file is the text file,
-			if(fileName.contains(".txt")) { 
-				DataReaderForTXT reader1 = new DataReaderForTXT(f.getAbsolutePath());
-				for(Chat e: reader1.readTXT()) {  
-					list.add(e); 
-				}
-			}
-			// if file is the csv file,
-			else if(fileName.contains(".csv")) { 
+			Runnable worker = new DataReader(f, list);
 
-				DataReaderForCSV reader2 = new DataReaderForCSV(f.getAbsolutePath()); 
-				for(Chat e: reader2.readCSV()) 
-					list.add(e);
-
-			}
-			else { //if the file is not txt or not csv
-				System.out.println("Can't read the format\n"); //Error message printed out
-			}
-			} catch(Exception e) {
-				System.out.println(e);
-				System.out.println("Check the file " + fileName );
-				e.printStackTrace();
-			}
+			executor.execute(worker);
+			Runners.add((DataReader) worker);
+			
 		}
 		
+		executor.shutdown(); // no new tasks will be accepted.
+		
+		while (!executor.isTerminated()) {
+        }
 
 		
-		
-		DataReader read = new DataReader(); //Instantiate the DataReader class
+		SortingAndMapping read = new SortingAndMapping(); //Instantiate the DataReader class
 		DataWriter writer = new DataWriter(read.getHashMap(), read.getName());
 		
 		read.counter(list); //call the method in DataReader class

@@ -34,8 +34,10 @@ public class Counter {
 		
 		for(String s: this.chatData) {
 			//check the time and message
-			if((s.contains(time)||time.contains(s))&&(s.contains(message)|| message.contains(s)) )
-				rcount++;				
+			if((s.contains(time)||time.contains(s))&&(s.contains(message)|| message.contains(s)) ) {
+				rcount++;
+
+			}
 		}
 	if(!chatData.contains(time+message))
 			this.chatData.add(time+message);
@@ -61,6 +63,7 @@ public class Counter {
 	 * @return (count - rcount), the count except the redundant message
 	 */
 	public int getCount() {
+
 		return (count-rcount);
 	}
 
