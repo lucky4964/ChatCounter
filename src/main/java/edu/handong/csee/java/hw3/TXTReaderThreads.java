@@ -4,12 +4,11 @@ import java.io.File; //Import the File class
 
 import java.text.ParseException;//Import the PaseException class for error handling for SimpleDateFormat parsing
 import java.text.SimpleDateFormat; //Import the SimpleDateFormat class
-import java.util.ArrayList;//Import the ArrayList class
 import java.util.Scanner;//Import the Scanner class
 
 /**
  * This class include the method that reads the txt file 
- * ,and returns the arraylist storing the chat counter
+ * ,and add data to the arraylist storing the chat counter
  * @author seonamjin
  *
  */
@@ -25,24 +24,22 @@ public class TXTReaderThreads { //Decalre the class
 	String message = new String();
 	java.util.Date d;
 	Chat c;
-	private ArrayList<Chat> list;
 	
 	/**
 	 * This is the constructor
 	 * ,and its parameters are name and file path
-	 * @param absolutePath
+	 * @param file to read
 	 * @throws Exception
 	 */
-	public TXTReaderThreads(File file, ArrayList<Chat> list)  { //Declare the constructor
+	public TXTReaderThreads(File file)  { //Declare the constructor
 		this.file = file;
-		this.list = list;
 	}
 	/**
 	 * this method read the file and returns the name in file
 	 * @return arraylist to store the name in file
 	 * @throws Exception 
 	 */
-	public void readTXT() throws Exception { //Declare the method 
+	synchronized public void readTXT() throws Exception { //Declare the method 
 
 		Scanner inputStream = null; //Declare the variable of Scanner class
 		System.out.println ("The text file " + file.getName() + " input.....\n"); //Print out the message that file is read
@@ -52,14 +49,14 @@ public class TXTReaderThreads { //Decalre the class
 		
 		while (inputStream.hasNextLine ()) { 
 			String line = inputStream.nextLine (); 
-
+	
 
 			if(line.contains("[")&&line.contains("]")) { 
 
-				data = line.split("]");
+				data = line.split("] ");
 
 				name = data[0].substring(1, data[0].length()); 
-				data[1]= data[1].substring(2,data[1].length());
+				data[1]= data[1].substring(1,data[1].length());
 
 				SimpleDateFormat original_format = new SimpleDateFormat("a hh:mm");
 				SimpleDateFormat new_format = new SimpleDateFormat("hh:mm");	
@@ -67,9 +64,11 @@ public class TXTReaderThreads { //Decalre the class
 				d = original_format.parse(data[1]);
 				time = new_format.format(d);
 				
-				message = data[2].substring(1, data[2].length());
+				message = data[2].substring(0, data[2].length());
 
 				c= new Chat(name, date +" "+time, message);
+				
+				
 				Hw3_main.list.add(c); //store the name to array list
 				
 
@@ -88,10 +87,9 @@ public class TXTReaderThreads { //Decalre the class
 			}
 
 
-			
 
 		}
-	
+		
 		inputStream.close();
 		return ;
 	}

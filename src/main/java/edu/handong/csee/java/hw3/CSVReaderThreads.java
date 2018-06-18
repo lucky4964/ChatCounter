@@ -9,13 +9,12 @@ import java.util.Date;
 import java.util.Scanner; //Import the Scanner class
 /**
  * This class include the method that reads the csv file 
- * ,and returns the arraylist storing the chat counter
+ * ,and add the data to the arraylist storing the chat counter
  * @author seonamjin
  *
  */
 public class CSVReaderThreads { //Declare the class
 
-	ArrayList<Chat> list; //Declare the filePath variable
 //	private String filePath; //Declare the ArrayList with string class
 	String[] data = new String[5]; //Instantiate the string list
 	private File file = null;
@@ -27,8 +26,8 @@ public class CSVReaderThreads { //Declare the class
 
 	/**
 	 * This is the constructor
-	 * ,and its parameters are name and file path
-	 * @param name is file name
+	 * ,and its parameter is csv file
+	 * @param file is the csv file to read
 	 */
 	public CSVReaderThreads(File file) {
 		// TODO Auto-generated constructor stub
@@ -37,10 +36,15 @@ public class CSVReaderThreads { //Declare the class
 		
 	}
 
- 
+	/**
+	 * Read CSV method is the method to read csv file
+	 * and add the chat data to arraylist in consistent form
+	 * and  parameter is the csv file to read
+	 * 
+	 * @throws FileNotFoundException
+	 */
 	synchronized public void readCSV() throws FileNotFoundException {
 		message = null;
-		list = new ArrayList<Chat>();
 		Scanner inputStream = null;
 		System.out.println ("The csv file " + file.getName() + " input.....\n");
 
@@ -54,7 +58,7 @@ public class CSVReaderThreads { //Declare the class
 
 			if(line.contains(",\"")) {
 
-				data = line.split(",");
+				data = line.split(",\"");
 				SimpleDateFormat new_format = new SimpleDateFormat("yyyy-MM-dd hh:mm");	
  
 				try {
@@ -63,15 +67,15 @@ public class CSVReaderThreads { //Declare the class
 				} catch(ParseException e) {
 					e.printStackTrace();
 				}
-				name = data[1].substring(1,data[1].length()-1);
-				message = line.substring(line.indexOf(data[2])+1, line.length()-1);
+				name = data[1].substring(0,data[1].length()-1);
+				message = data[2].substring(0, data[2].length()-1);
 				
 				Check();
 	
 				
 				Chat c = new Chat(name,date,message);
 				Hw3_main.list.add(c);
-
+				
 
 			}
 		}
@@ -79,6 +83,11 @@ public class CSVReaderThreads { //Declare the class
 		return;
 	}
 	
+	/**
+	 * this method is to check the problems
+	 * ex) "photo" --> "사진"
+	 * 		"" -> "
+	 */
 	public void Check() {
 		if(message.contains("Photo")) {
 			message="사진";

@@ -24,10 +24,11 @@ public class Hw3_main { //Declare the class including the main method
 
 	static String inputPath;
 	static String outputPath;
+	static String numOfThreadsInPool;
 	boolean verbose;
 	boolean help;
 	static ArrayList<Chat> list; //Instantiate the ArrayList with String
-	
+
 	/**
 	 * This is the class including main method
 	 * it handle cmd 
@@ -42,53 +43,40 @@ public class Hw3_main { //Declare the class including the main method
 		String filePath=null; //Declare the String variable storing the directory
 		File files=null; //Instantiate the File class with directory
 		File[] listOfFile = null; //Declare the file list
-		
+
 		Hw3_main console = new Hw3_main();
 		console.run(args);
 
 		filePath = inputPath;
 		try {
-		files = new File(filePath);
-		listOfFile = files.listFiles();
-		
-		if (!files.exists()) throw new NullPointerException();
+			files = new File(filePath);
+			listOfFile = files.listFiles();
+
+			if (!files.exists()) throw new NullPointerException();
 		} catch (NullPointerException e) {
 			System.out.println("You entered the wrong directory!!!");
 			System.exit(-1);
 		}
-		
-		String fileName ;
-		
-		
-		
-		ArrayList<DataReader> Runners = new ArrayList<DataReader>();
+		System.out.println("The number of cores of my system: " + numOfThreadsInPool);
 
-		// this method returns the number of available threads
-		
-		int numOfCoresInMyCPU = Runtime.getRuntime().availableProcessors();
-		System.out.println("The number of cores of my system: " + numOfCoresInMyCPU);
-		
-		ExecutorService executor = Executors.newFixedThreadPool(numOfCoresInMyCPU);
+		ExecutorService executor = Executors.newFixedThreadPool(Integer.parseInt(numOfThreadsInPool));
 
 
 		for(File f: listOfFile) { 
-			fileName = f.getName(); 
-			Runnable worker = new DataReader(f, list);
+			Runnable worker = new DataReader(f);
 
 			executor.execute(worker);
-			Runners.add((DataReader) worker);
-			
-		}
-		
-		executor.shutdown(); // no new tasks will be accepted.
-		
-		while (!executor.isTerminated()) {
-        }
 
-		
+		}
+
+		executor.shutdown(); // no new tasks will be accepted.
+
+		while (!executor.isTerminated()) {
+		}
+
 		SortingAndMapping read = new SortingAndMapping(); //Instantiate the DataReader class
 		DataWriter writer = new DataWriter(read.getHashMap(), read.getName());
-		
+
 		read.counter(list); //call the method in DataReader class
 		writer.run(outputPath);
 
@@ -101,27 +89,34 @@ public class Hw3_main { //Declare the class including the main method
 	 */
 	public void run(String[] args) {
 		Options options = createOptions();
-		
+
 		if(parseOptions(options, args)){
 			if (help){
 				printHelp(options);
 				return;
 			}
-			
+
 			inputPath = args[1];
 			System.out.println("You provided \"" + inputPath + "\" as the value of the option i");	
-	
-			
+
+
 			// path is required (necessary) data so no need to have a branch.
-			outputPath = args[3];
-			System.out.println("You provided \"" + outputPath + "\" as the value of the option o");			
-			
+			outputPath = args[5];
+			System.out.println("You provided \"" + outputPath + "\" as the value of the option o");	
+
+
+			numOfThreadsInPool = args[3];
+			System.out.println("You provided \"" + numOfThreadsInPool + "\" as the value of the option c");		
+
 			// TODO show the number of files in the path
-			
+
+
+
+
 			if(verbose) {
-				
+
 				// TODO list all files in the path
-				
+
 				System.out.println("Your program is terminated. (This message is shown because you turned on -v option!");
 			}
 		}
@@ -141,6 +136,7 @@ public class Hw3_main { //Declare the class including the main method
 
 			inputPath = cmd.getOptionValue("i");
 			outputPath = cmd.getOptionValue("o");
+			numOfThreadsInPool = cmd.getOptionValue("c");
 			verbose = cmd.hasOption("v");
 			help = cmd.hasOption("h");
 
@@ -173,11 +169,19 @@ public class Hw3_main { //Declare the class including the main method
 				.desc("Set a directory path that contains output files")
 				.argName("Directory path")
 				.build());
-		
+
+		// add options by using OptionBuilder
+		options.addOption(Option.builder("c").longOpt("numOfThreads")
+				.desc("Set a number of threads of the Thread pool")
+				//.hasArg()
+				.argName("Number of Threads")
+				//.required()
+				.build());
+
 		// add options by using OptionBuilder
 		options.addOption(Option.builder("h").longOpt("help")
-		        .desc("Help")
-		        .build());
+				.desc("Help")
+				.build());
 
 		return options;
 	}
